@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Профіль{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="bi bi-person-circle me-2"></i>Мій профіль</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Інформація про користувача</h5>
+            <ul class="list-group list-group-flush mt-3">
+                <li class="list-group-item"><strong>Ім'я користувача:</strong> {{ user.last_name }} {{ user.first_name }}</li>
+                <li class="list-group-item"><strong>Email:</strong> {{ user.email }}</li>
+                <li class="list-group-item"><strong>Роль:</strong>
+                    {% if user.role == "teacher" %}Вчитель
+                    {% elif user.role == "student" %}Учень
+                    {% else %}Не вказано
+                    {% endif %}
+                </li>
+                <li class="list-group-item"><strong>Дата приєднання:</strong> {{ user.date_joined|date:"d.m.Y H:i" }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger">
+            <i class="bi bi-box-arrow-right me-1"></i> Вийти
+        </a>
+    </div>
+</div>
+{% endblock %}

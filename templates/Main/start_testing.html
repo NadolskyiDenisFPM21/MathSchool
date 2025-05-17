@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow rounded-3">
+        <div class="card-body">
+            <h2 class="card-title">{{ test.title }}</h2>
+            {% if test.description %}
+                <p class="card-text">{{ test.description }}</p>
+            {% else %}
+                <p class="text-muted">Опис тесту відсутній.</p>
+            {% endif %}
+
+            <p class="mt-3"><strong>Учень:</strong> {{ student.get_full_name|default:student.username }}</p>
+
+            <form method="get" action="{% url 'Main:testing' test.test_link student.id %}">
+                <button type="submit" class="btn btn-primary">Почати тест</button>
+            </form>
+        </div>
+    </div>
+
+    <a href="{% url 'Main:home' %}" class="btn btn-link mt-3">← Назад</a>
+</div>
+{% endblock %}

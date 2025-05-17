@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}Результати тесту{% endblock %}
+{% block content %}
+<h2>Результати тесту: {{ attempt.test.title }}</h2>
+<p>Оцінка: {{ score }}</p>
+<hr>
+
+{% for item in results %}
+  <div class="card mb-3 {% if item.is_correct %}border-success{% else %}border-danger{% endif %}">
+    <div class="card-body">
+      <h5 class="card-title">{{ item.question.text }}</h5>
+      <p>Тип питання: {{ item.question.get_question_type_display }}</p>
+
+      {% if item.question.question_type == 'text' %}
+        <p><strong>Ваша відповідь:</strong> {{ item.your_answer }}</p>
+        <p><strong>Правильна відповідь:</strong> {{ item.question.correct_answer }}</p>
+
+      {% elif item.question.question_type == 'choice' %}
+        <p><strong>Ваша відповідь:</strong> {{ item.question.choices|index:item.your_answer|default:"—" }}</p>
+        <p><strong>Правильна відповідь:</strong> {{ item.question.choices|index:item.question.correct_choice }}</p>
+
+      {% elif item.question.question_type == "match" %}
+          <div class="row">
+            <div class="col-md-6">
+                <h6>Ліва сторона</h6>
+                <ul class="list-group">
+                    {% for item in item.question.left_items %}
+                        <li class="list-group-item">{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Права сторона</h6>
+                <ul class="list-group">
+                    {% for item in item.question.right_items %}
+                        <li class="list-group-item">{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <p><strong>Ваша відповідь:</strong></p>
+        <ul>
+          {% for pair in item.your_answer %}
+            <li>
+              {{ pair.0 }} — {{ pair.1 }}
+            </li>
+          {% empty %}
+            <li>—</li>
+          {% endfor %}
+        </ul>
+
+        <p><strong>Правильна відповідь:</strong></p>
+        <ul>
+          {% for pair in item.question.correct_pairs %}
+            <li>
+              {{ pair.0 }} — {{ pair.1 }}
+            </li>
+          {% empty %}
+            <li>—</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if item.is_correct %}
+        <p class="text-success">✅ Правильно</p>
+      {% else %}
+        <p class="text-danger">❌ Неправильно</p>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+
+<a href="{% url 'Tests:test_list' %}" class="btn btn-secondary mt-3">← Назад до списку тестів</a>
+{% endblock %}

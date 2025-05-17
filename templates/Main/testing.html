@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ test.title }}</h2>
+    <p class="text-muted">{{ test.description }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% for question in questions %}
+        <div class="card my-4 shadow-sm">
+            <div class="card-body">
+                <h5>{{ forloop.counter }}. {{ question.text }}</h5>
+                <p class="text-muted">{{ question.get_question_type_display }}</p>
+
+                {% if question.question_type == "text" %}
+                    <textarea name="question_{{ question.id }}" class="form-control" rows="3" required></textarea>
+
+                {% elif question.question_type == "choice" %}
+                    {% with question.get_real_instance as real %}
+                        {% for option in real.choices %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="q{{ question.id }}_{{ forloop.counter0 }}" value="{{ forloop.counter0 }}" required>
+                            <label class="form-check-label" for="q{{ question.id }}_{{ forloop.counter0 }}">{{ option }}</label>
+                        </div>
+                        {% endfor %}
+                    {% endwith %}
+
+                {% elif question.question_type == "match" %}
+                    {% with question.get_real_instance as real %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Ліва сторона</h6>
+                                <ul class="list-group">
+                                    {% for item in real.left_items %}
+                                        <li class="list-group-item">{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Права сторона</h6>
+                                <ul class="list-group">
+                                    {% for item in real.right_items %}
+                                        <li class="list-group-item">{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="mt-3">Вкажіть відповідності (наприклад: 1-2,1-1)</p>
+                        <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Формат: 1-2,1-1" required>
+                    {% endwith %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-success">Завершити тест</button>
+    </form>
+</div>
+{% endblock %}

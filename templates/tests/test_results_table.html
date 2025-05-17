@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Відповіді учнів{% endblock %}
+{% block content %}
+<h2>Відповіді учнів</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Учень</th>
+            <th>Тест</th>
+            <th>Дата початку</th>
+            <th>Дата завершення</th>
+            <th>Відповіді</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for attempt in attempts %}
+        <tr>
+            <td>{{ attempt.student.username }}</td>
+            <td>{{ attempt.test.title }}</td>
+            <td>{{ attempt.started_at }}</td>
+            <td>{{ attempt.finished_at }}</td>
+            <td>
+                <ul>
+                    {% for answer in attempt.answers.all %}
+                    <li><strong>{{ answer.question.text }}</strong>: {{ answer.response }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Створити/Редагувати тест{% endblock %}
+
+{% block content %}
+<h2>Створити або редагувати тест</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    <div class="formset">
+        {% for form in formset %}
+            <div class="card p-3 mb-3">
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+</form>
+{% endblock %}

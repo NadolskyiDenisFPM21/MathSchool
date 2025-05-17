@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Сторінка не знайдена{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <h1 class="display-3 text-danger">404</h1>
+    <p class="lead">Сторінка не знайдена. Ви можете повернутися на головну сторінку або перевірити адресу.</p>
+    <a href="{% url 'Main:home' %}" class="btn btn-primary">На головну</a>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters_main %}
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">{{ test.title }}</h2>
+<span onclick="copyToClipboard('{{ test_url }}')" style="cursor: pointer; color: blue; text-decoration: underline;">
+    Копіювати посилання
+</span>
+
+<script>
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(function() {
+    alert("Скопійовано: " + text);
+  }, function(err) {
+    alert("Помилка");
+  });
+}
+</script>
+<p class="text-muted">{{ test.description }}</p>
+
+<hr>
+<h4>Питання:</h4>
+
+{% if questions %}
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for question in questions %}
+      <div class="col">
+        <div class="card border-{{ question.question_type|yesno:'primary,success,warning' }}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h5 class="card-title">{{ forloop.counter }}. {{ question.text }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ question.get_question_type_display }}</h6>
+              </div>
+              <div>
+                <form method="post" action="{% url 'Tests:delete_question' test.id question.id %}" onsubmit="return confirm('Ви впевнені, що хочете видалити це питання?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                </form>
+              </div>
+            </div>
+
+            {% if question.question_type == "choice" %}
+              {% if question.choices %}
+                <ul class="list-group list-group-flush mt-2">
+                  {% for choice in question.choices %}
+                    <li class="list-group-item {% if forloop.counter0 == question.correct_choice %}list-group-item-success{% endif %}">
+                      {{ forloop.counter }}. {{ choice }}
+                      {% if forloop.counter0 == question.correct_choice %}
+                        <strong class="text-success">(Правильна відповідь)</strong>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted">Немає варіантів відповіді.</p>
+              {% endif %}
+
+            {% elif question.question_type == "match" %}
+              {% if question.left_items and question.right_items %}
+                <div class="row mt-2">
+                  <div class="col-sm-6">
+                    <strong>Ліва сторона:</strong>
+                    <ol>
+                      {% for item in question.left_items %}
+                        <li>{{ item }}</li>
+                      {% endfor %}
+                    </ol>
+                  </div>
+                  <div class="col-sm-6">
+                    <strong>Права сторона:</strong>
+                    <ol>
+                      {% for item in question.right_items %}
+                        <li>{{ item }}</li>
+                      {% endfor %}
+                    </ol>
+                  </div>
+                </div>
+                <p class="mt-2"><strong>Правильні відповідності:</strong></p>
+                <ul>
+                  {% for pair in question.correct_pairs %}
+                    <li>{{ pair.0 }} — {{ pair.1 }}</li>
+                  {% empty %}
+                    <li>Немає відповідностей</li>
+                  {% endfor %}
+              {% endif %}
+            {% else %}
+                {% if question.correct_answer %}
+                    <strong class="text-success">{{ question.correct_answer }}</strong>
+                {% endif %}
+            {% endif %}
+              </ul>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>Питань ще немає.</p>
+{% endif %}
+
+<hr class="my-4">
+
+<h4>Додати нове питання:</h4>
+<div class="btn-group mb-3">
+  <a href="{% url 'Tests:add_question' test.id %}?question_type=text" class="btn btn-outline-primary">Відкрите</a>
+  <a href="{% url 'Tests:add_question' test.id %}?question_type=choice" class="btn btn-outline-success">З вибором</a>
+  <a href="{% url 'Tests:add_question' test.id %}?question_type=match" class="btn btn-outline-warning">Співставлення</a>
+</div>
+<div class="btn-group mb-3">
+<a href="{% url 'Tests:test_list' %}" class="btn btn-secondary">← Назад до списку тестів</a>
+</div>
+{% endblock %}

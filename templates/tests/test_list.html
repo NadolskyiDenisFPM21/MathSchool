@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Тести{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Список тестів</h2>
+        <a href="{% url 'Tests:test_create' %}" class="btn btn-success">➕ Створити новий тест</a>
+    </div>
+
+    {% if tests %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for test in tests %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ test.title }}</h5>
+                        {% if test.description %}
+                        <p class="card-text">{{ test.description|truncatechars:100 }}</p>
+                        {% else %}
+                        <p class="text-muted">Без опису</p>
+                        {% endif %}
+                        <a href="{% url 'Tests:test_detail' test.id %}" class="btn btn-outline-primary btn-sm mt-2">Переглянути тест</a>
+                    </div>
+                    <div class="card-footer text-muted small">
+                        Створено: {{ test.created_at|date:"d.m.Y H:i" }}
+                        <form action="{% url 'Tests:test_delete' test.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                Видалити тест
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">Ще не створено жодного тесту.</p>
+    {% endif %}
+</div>
+{% endblock %}
