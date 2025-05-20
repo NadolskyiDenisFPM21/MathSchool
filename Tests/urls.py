@@ -5,6 +5,7 @@ app_name = 'Tests'
 
 urlpatterns = [
     path('', views.test_list_view, name='test_list'),  # Список тестов
+    path('generate_test/', views.generate_test_view, name='generate_test'),
     path('create/', views.test_create_view, name='test_create'),  # Создание теста
     path('delete/<int:test_id>/', views.test_delete_view, name='test_delete'),
     path('<int:test_id>/', views.test_detail_view, name='test_detail'),  # Детали теста (вопросы)

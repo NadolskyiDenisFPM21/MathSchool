@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Генерація тесту
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Генерація тесту</h2>
+    <form method="post" action="{% url 'Tests:generate_test' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="topic" class="form-label">Тема тесту</label>
+            <input type="text" class="form-control" id="topic" name="topic" required placeholder="Наприклад: Квадратні рівняння">
+        </div>
+        <div class="mb-3">
+            <label for="difficulty" class="form-label">Складність (1–10)</label>
+            <input type="number" class="form-control" id="difficulty" name="difficulty" min="1" max="10" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Згенерувати тест</button>
+    </form>
+</div>
+{% endblock %}

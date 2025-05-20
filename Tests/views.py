@@ -1,3 +1,6 @@
+import json
+
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 
@@ -6,6 +9,8 @@ from .models import Test, TestAttempt, Answer, Question, ChoiceQuestion
 from django.contrib.auth.decorators import login_required
 from .forms import TestForm, ChoiceQuestionForm, MatchQuestionForm, BaseQuestionForm, QuestionTypeForm, TextQuestionForm
 from django.forms import modelformset_factory
+
+from .utils import generate_test_via_openai, generate_test_data
 
 
 @login_required
@@ -19,7 +24,7 @@ def test_list_view(request):
 @login_required
 def test_detail_view(request, test_id):
     test = get_object_or_404(Test, pk=test_id)
-    base_questions = test.question_set.all()
+    base_questions = test.questions.all()
 
     test_url = f"{request.build_absolute_uri('/test/')}{test.test_link}"
     # Преобразуем базовые вопросы в их подклассы
@@ -122,3 +127,23 @@ def delete_question_view(request, test_id, question_id):
         question.delete()
         return redirect('Tests:test_detail', test_id=test_id)
     return redirect('Tests:test_detail', test_id=test_id)
+
+
+@login_required
+def generate_test_view(request):
+    if request.method == "POST":
+        topic = request.POST.get("topic")
+        difficulty = request.POST.get("difficulty")
+        test_data = generate_test_via_openai(f"Згенеруй тест на тему:{topic} і складністю: {difficulty} з 10")
+        test_link = generate_test_data(test_data)
+        return redirect('Main:start_testing', test_link=test_link)
+    return render(request, 'tests/generate_test.html')
+
+
+
+def test_api(request):
+    test_data = generate_test_via_openai("Згенеруй практичний тест на тему: Квадратні рівняння")
+    test_link = generate_test_data(test_data)
+    return HttpResponse(test_link)
+
+

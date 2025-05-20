@@ -104,7 +104,7 @@
             <ul class="nav flex-column">
                 <li class="nav-item"><a class="nav-link" href="{% url 'Tests:test_list' %}"><i class="bi bi-journal-text me-2"></i> Тести</a></li>
                 <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-book me-2"></i> Теоретичні відомості</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-chat-dots me-2"></i> Чат з MathGPT</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'Main:chat' %}"><i class="bi bi-chat-dots me-2"></i> Чат з MathGPT</a></li>
                 {% if user.is_authenticated and user.role == "teacher" %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'Main:students' %}"><i class="bi bi-people me-2"></i> Учні</a></li>
                 {% endif %}

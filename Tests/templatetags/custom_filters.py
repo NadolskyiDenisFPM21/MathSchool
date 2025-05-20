@@ -4,7 +4,7 @@ register = template.Library()
 @register.filter
 def index(sequence, i):
     try:
-        return sequence[i]
+        return sequence[int(i)]
     except:
         return ''
 

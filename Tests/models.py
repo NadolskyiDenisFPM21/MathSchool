@@ -33,7 +33,7 @@ class Question(models.Model):
         MATCH = 'match', 'Сопоставлення'
 
 
-    test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField(verbose_name='Питання')
     question_type = models.CharField(max_length=32, choices=QuestionType.choices)
 

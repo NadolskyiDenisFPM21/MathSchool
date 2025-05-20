@@ -1,11 +1,16 @@
+import time
 import uuid
 
+import openai
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
+from DjangoGPTMath import settings
 from Tests.models import Test, TestAttempt, Question, Answer
 from Users.models import User, Invite
 
@@ -49,7 +54,7 @@ def start_testing_view(request: HttpRequest, test_link) -> HttpResponse:
 @login_required
 def testing_view(request: HttpRequest, test_link, student_id) -> HttpResponse:
     test = get_object_or_404(Test, test_link=test_link)
-    questions = test.question_set.all()
+    questions = test.questions.all()
 
     if request.method == "POST":
         attempt = TestAttempt.objects.create(student=request.user, test=test)
@@ -148,3 +153,80 @@ def attempt_results_view(request, attempt_id):
         'results': detailed_results,
         'score': score,
     })
+
+
+
+# View для рендеру чату
+@login_required
+def chat_interface_view(request):
+    openai.api_key = settings.OPENAI_API_KEY
+    thread = openai.beta.threads.create()
+    return render(request, 'Main/gpt_chat.html', {'thread_id': thread.id})
+
+
+@csrf_exempt
+@require_POST
+def chat_api_view(request, thread_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required"}, status=403)
+
+    message = request.POST.get('message', '').strip()
+    image = request.FILES.get('image')
+
+    if not message:
+        return JsonResponse({"error": "Message cannot be empty"}, status=400)
+
+    # Отримати відповідь від ШІ
+    reply = generate_ai_reply(message, image, thread_id=thread_id)
+
+    return JsonResponse({"reply": reply})
+
+def generate_ai_reply(message, image=None, thread_id=None):
+    # Якщо є зображення — завантажити його
+    file_id = None
+    if image:
+        uploaded_file = openai.files.create(
+            file=(image.name, image),
+            purpose="assistants"
+        )
+        file_id = uploaded_file.id
+
+    # Додати повідомлення користувача
+    message_payload = {
+        "thread_id": thread_id,
+        "role": "user",
+        "content": message,
+    }
+    if file_id:
+        message_payload["file_ids"] = [file_id]
+
+    openai.beta.threads.messages.create(**message_payload)
+
+    # Запустити асистента
+    run = openai.beta.threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=settings.ASSISTANT_ID,
+        stream=False
+    )
+
+    # Дочекатись завершення run
+    while run.status not in ["completed", "failed", "cancelled"]:
+        time.sleep(1)
+        run = openai.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run.id
+        )
+
+    if run.status != "completed":
+        return "⚠️ Помилка під час обробки запиту ШІ."
+
+    # Отримати повідомлення асистента
+    messages = openai.beta.threads.messages.list(thread_id=thread_id)
+    print(messages)
+    for msg in messages.data:
+        if msg.role == "assistant":
+            parts = msg.content
+            reply = "".join(part.text.value for part in parts if part.type == "text")
+            return reply
+
+    return "⚠️ ШІ не надав відповіді."

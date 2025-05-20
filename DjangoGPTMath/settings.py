@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Users.apps.UsersConfig',
     'Main.apps.MainConfig',
-    'Tests.apps.TestsConfig'
+    'Tests.apps.TestsConfig',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -148,3 +149,7 @@ AUTH_USER_MODEL = 'Users.User'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+
+OPENAI_API_KEY = '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'
+ASSISTANT_ID = 'asst_INeihylvPQAj8MwKVcMLBWaU'

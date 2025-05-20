@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Чат з ШІ{% endblock %}
+
+{% block content %}
+<!-- MathJax для красивого відображення формул -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: auto;
+        height: 80vh;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 1rem;
+        background-color: #f9f9f9;
+    }
+
+    .chat-box {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 1rem;
+    }
+
+    .message {
+        margin: 0.5rem 0;
+        padding: 0.75rem;
+        border-radius: 8px;
+        max-width: 75%;
+        white-space: pre-wrap;
+    }
+
+    .user {
+        align-self: flex-end;
+        background-color: #d1e7dd;
+    }
+
+    .ai {
+        align-self: flex-start;
+        background-color: #e2e3e5;
+    }
+
+    .input-box {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .input-box textarea {
+        flex: 1;
+        resize: none;
+    }
+</style>
+
+<div class="chat-container">
+    <div class="chat-box" id="chat-box">
+        <!-- Messages will appear here -->
+    </div>
+
+    <form id="chat-form" enctype="multipart/form-data" class="input-box">
+        {% csrf_token %}
+        <textarea id="message" rows="2" class="form-control" placeholder="Введіть повідомлення..." required></textarea>
+        <input type="file" id="image" name="image" accept="image/*" class="form-control-file">
+        <button type="submit" class="btn btn-primary">Надіслати</button>
+    </form>
+</div>
+
+<script>
+    const chatBox = document.getElementById("chat-box");
+    const form = document.getElementById("chat-form");
+    const messageInput = document.getElementById("message");
+
+    function appendMessage(text, sender) {
+        const div = document.createElement("div");
+        div.className = `message ${sender}`;
+        div.innerHTML = text;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Запуск MathJax після додавання нового повідомлення
+        if (window.MathJax) {
+            MathJax.typesetPromise([div]);
+        }
+    }
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        appendMessage(message, "user");
+
+        const formData = new FormData();
+        formData.append("message", message);
+        const imageInput = document.getElementById("image");
+        if (imageInput.files.length > 0) {
+            formData.append("image", imageInput.files[0]);
+        }
+
+        // Очистити форму
+        messageInput.value = "";
+        imageInput.value = "";
+
+        try {
+            const response = await fetch("{% url 'Main:chat_api' thread_id %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.reply) {
+                appendMessage(data.reply, "ai");
+            } else {
+                appendMessage("❗ Виникла помилка", "ai");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            appendMessage("❗ Сервер недоступний", "ai");
+        }
+    });
+</script>
+{% endblock %}
